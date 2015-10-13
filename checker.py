@@ -21,6 +21,7 @@ class Checker:
         self.new_file = '.'.join((name, mod_string, extension))
 
     def check_file(self, replace=False):
+        paren_spaces = list()
         with open(self.filename, 'r') as f, open(self.new_file, 'w') as out:
             block = 0
             for i, line in enumerate(f, start=1):
@@ -37,9 +38,13 @@ class Checker:
                 down_count = line.count('}')
                 block -= down_count
                 line = re.sub(r'\t', ' ' * self.tab_spaces, line)
-                space_count = self.tab_spaces * block
+                if paren_spaces:
+                    paren_adjust = paren_spaces[-1]
+                else:
+                    paren_adjust = 0
+                space_count = self.tab_spaces * block + paren_adjust
                 m = re.match(' ' * space_count + r'\S', line)
-                if m is None and block > 0 and len(line) > 0:
+                if m is None and len(line) > 0:
                     m = re.match(r'( )+', line)
                     if m:
                         counted_spaces = len(m.groups(1))
@@ -49,6 +54,11 @@ class Checker:
                         self.filename, counted_spaces, i, space_count)
                     line = ' ' * space_count + line.strip()
                     print(err_str)
+                for j, char in enumerate(line.strip(), start=1):
+                    if char == '(':
+                        paren_spaces.append(j)
+                    elif char == ')':
+                        paren_spaces.pop()
                 if comment:
                     line = '#'.join((line, comment))
                 self.check_length(i, line)
