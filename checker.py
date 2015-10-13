@@ -39,11 +39,10 @@ class Checker:
                 block -= down_count
                 line = re.sub(r'\t', ' ' * self.tab_spaces, line)
                 if paren_spaces:
-                    paren_adjust = paren_spaces[-1]
+                    adjust = paren_spaces[-1]
                 else:
-                    paren_adjust = 0
-                space_count = self.tab_spaces * block + paren_adjust
-                m = re.match(' ' * space_count + r'\S', line)
+                    adjust = self.tab_spaces * block
+                m = re.match(' ' * adjust + r'\S', line)
                 if m is None and len(line) > 0:
                     m = re.match(r'( )+', line)
                     if m:
@@ -51,10 +50,10 @@ class Checker:
                     else:
                         counted_spaces = 0
                     err_str = '{0}: {1} spaces preceding line {2}. Expected {3}.'.format(
-                        self.filename, counted_spaces, i, space_count)
-                    line = ' ' * space_count + line.strip()
+                        self.filename, counted_spaces, i, adjust)
+                    line = ' ' * adjust + line.strip()
                     print(err_str)
-                for j, char in enumerate(line.strip(), start=1):
+                for j, char in enumerate(line, start=1):
                     if char == '(':
                         paren_spaces.append(j)
                     elif char == ')':
